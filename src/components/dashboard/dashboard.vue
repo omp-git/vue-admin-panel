@@ -2,8 +2,8 @@
   <div id="dashboard">
     <div>
     <h1>That's the dashboard.</h1>
-    <h2 v-cloak v-if="auth" class="auth">Your are logged in! ({{ fullName }})</h2>
-    <h2 v-else class="gest">Your are not logged in!</h2>
+    <h2 v-if="auth && fullName != ''" class="auth">Your are logged in! ({{ fullName }})</h2>
+    <h2 v-if="!auth" class="gest">Your are not logged in!</h2>
     </div>
     <div class="user-list" v-if="auth">
       <h4>User List</h4>

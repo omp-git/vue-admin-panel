@@ -8,7 +8,8 @@
           <input 
             type="text"
             id="mobile" 
-            v-model.trim="mobile">
+            @blur="$v.mobile.$touch()"
+            v-model.trim.number="mobile">
             <span class="error-msg" v-if="!$v.mobile.required && $v.mobile.$dirty">Mobile-Number field is requird.</span>
             <span class="error-msg" v-if="!$v.mobile.valid">Mobile-Number format is invalid.</span>
         </div> 
@@ -17,6 +18,7 @@
           <input
             type="password"
             id="password"
+            @blur="$v.password.$touch()"
             v-model="password">
             <span class="error-msg" v-if="!$v.password.required && $v.password.$dirty">Password field is requird.</span>
             <span class="error-msg" v-if="!$v.password.minLen && $v.password.$dirty">Password field must at least {{ $v.password.$params.minLen.min }} characters.</span>

@@ -23,7 +23,7 @@
                   id="password"
                   v-model="password">
         </div>
-        <div class="input">
+        <!-- <div class="input">
           <label for="confirm-password">Confirm Password</label>
           <input
                   type="password"
@@ -38,7 +38,7 @@
             <option value="uk">UK</option>
             <option value="germany">Germany</option>
           </select>
-        </div>
+        </div> -->
         <div class="hobbies">
           <h3>Add some Hobbies</h3>
           <button @click="onAddHobby" type="button">Add Hobby</button>
