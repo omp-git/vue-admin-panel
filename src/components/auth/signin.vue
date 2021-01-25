@@ -38,8 +38,8 @@
   export default {
     data () {
       return {
-        mobile: '9371071458',
-        password: '123123123',
+        mobile: '',
+        password: '',
         connd: true,
         serverErrors: {
           mobile: null,

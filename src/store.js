@@ -2,31 +2,47 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import globalAxios from './axios'
 import router from './router'
+import aes from 'crypto-js/aes'
+import utf8 from 'crypto-js/enc-utf8'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
     idToken: null,
-    userId: null
+    userId: null,
+    expiresIn: null
   },
   mutations: {
     // save token and expiration in vuex state
     authUser (state, authData) {
       state.idToken = authData.token
       state.userId = authData.userId
-      localStorage.setItem('_uid', authData.userId)
-      localStorage.setItem('_token', authData.token)
-      localStorage.setItem('_expires', authData.expiresIn)    
+      state.expiresIn = authData.expiresIn
+
+      // localStorage.setItem('_uid', authData.userId)
+      // localStorage.setItem('_token', authData.token)
+      // localStorage.setItem('_expires', authData.expiresIn)  
+      saveToLocal({
+        token: authData.token,
+        userId: authData.userId,
+        expiresIn: authData.expiresIn,
+      })
       router.push('/dashboard').catch(()=>{})
     },
     // clear token and expiration in vuex state
     clearAuthUser (state) {
       state.idToken = null
       state.userId = null
-      localStorage.setItem('_uid', null)
-      localStorage.setItem('_token', null)
-      localStorage.setItem('_expires', null) 
+      state.expiresIn = null
+      // localStorage.setItem('_uid', null)
+      // localStorage.setItem('_token', null)
+      // localStorage.setItem('_expires', null) 
+      saveToLocal({
+        token: null,
+        userId: null,
+        expiresIn: null,
+      })
       router.push('/signin').catch(()=>{})
     }
   },
@@ -62,18 +78,21 @@ export default new Vuex.Store({
 
     // try to login after refresh page
     tryAutoLogin({commit, dispatch}) {
-      const token = localStorage.getItem('_token')
+      const info = loadLocalData()
+      if(!info) { return }
+
+      const token = info._token
       if(typeof(token) == 'undefined' || token === null || token === 'null') {
         return
       }
 
-      const expirationDate = localStorage.getItem('_expires');
+      const expirationDate = info._exp;
       const now = utcNow()
       if(now >= expirationDate) {
         return
       }
 
-      const userId = localStorage.getItem('_uid')
+      const userId = info._uid
       commit('authUser', {
         token: token,
         expiresIn: expirationDate,
@@ -86,7 +105,6 @@ export default new Vuex.Store({
       commit('clearAuthUser')
     },
     setLogoutTime({dispatch}, expirationTime) {
-      console.log('timeout: ', expirationTime*1000)
       setTimeout(() => {
         dispatch('logout')
       }, expirationTime * 1000) 
@@ -101,6 +119,9 @@ export default new Vuex.Store({
     },
     uId(state) {
       return state.userId;
+    },
+    expiresIn(state) {
+      return state.expiresIn;
     }
   }
 })
@@ -108,4 +129,26 @@ export default new Vuex.Store({
 function utcNow() {
   const now = new Date()
   return Math.floor(now.getTime() / 1000)   
+}
+
+function saveToLocal(data) {
+  let info = { _exp: data.expiresIn, _token: data.token, _uid: data.userId}
+  var cipher = aes.encrypt(JSON.stringify(info), process.env.VUE_APP_KEY_AES)
+  localStorage.setItem('vue_user', cipher)
+  return true;
+}
+
+function loadLocalData() {
+  try {
+    const raw = localStorage.getItem('vue_user')
+    var bytes = aes.decrypt(raw.toString(), process.env.VUE_APP_KEY_AES);
+    var obj = JSON.parse(bytes.toString(utf8))
+    console.log((obj))
+  }
+  catch {
+    return false;
+  }
+  if (('_exp' in obj) && ('_token' in obj) && ('_uid' in obj))
+    return obj;
+  return false;
 }
