@@ -6,11 +6,16 @@
     <h2 v-if="!auth" class="gest">Your are not logged in!</h2>
     </div>
     <div class="user-list" v-if="auth">
-      <h4>User List</h4>
+      <h4>Active user List</h4>
       <hr>
       <div>
         <ul>
-          <li v-for="(user, index) in users" :key="index">{{ (index+1) + ' - ' + user.name }}</li>
+          <li v-for="(user, index) in users" :key="index">
+            <div class="user-card">
+              <img :src="user.avatar">
+              <strong>{{ user.name }}</strong>
+            </div>
+          </li>
         </ul>
       </div>
     </div>
@@ -32,34 +37,36 @@
     },
     created() {
       if(this.auth) {
-        axios.post('auth/vue-login-user', {
+        axios.post('auth/me', {
           token: this.$store.getters.token,
           _id: this.$store.getters.uId
         })
         .then((res) => {
           const data = res.data
-          if(data.status) {
-            const user = data.user
-            this.fullName = user.fname + ' ' + user.lname
-          } else {
-              this.$store.dispatch('logout')
+          if(res.status === 200) {
+            const user = data.me
+            this.fullName = user.name
           }
         })
-        .catch((error) => console.log(error)) 
+        .catch((error) => {
+          this.$store.dispatch('logout')
+          console.log(error.response)
+        }) 
 
-        axios.post('auth/vue-user-list', {
+        axios.post('users', {
           token: this.$store.getters.token
         })
         .then((res) => {
           const data = res.data
-          if(data.status) {
+          if(res.status == 200) {
             const users = data.users
             this.users = users
-          } else {
-              this.$store.dispatch('logout')
           }
         })
-        .catch((error) => console.log(error)) 
+        .catch((error) => {
+          this.$store.dispatch('logout')
+          console.log(error)
+        }) 
       }
 
     }
@@ -84,11 +91,25 @@
   }
   .user-list ul {
     list-style: none;
+    padding: 0;
   }
   .user-list li {
     margin: .8rem auto;
   }
   .user-list hr {
     width: 75%;
+  }
+  .user-card {
+    padding: 0;
+    display: inline-flex;
+    min-width: 280px;
+    box-shadow: 0px 2px 4px #bbbbbb
+  }
+  .user-card img {
+    width: 50px;
+    height: 50px;
+  }
+  .user-card strong {
+    margin: auto;
   }
 </style>

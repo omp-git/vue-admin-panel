@@ -9,7 +9,7 @@
             type="text"
             id="mobile" 
             @blur="$v.mobile.$touch()"
-            v-model.trim.number="mobile">
+            v-model.trim="mobile">
             <span class="error-msg" v-if="!$v.mobile.required && $v.mobile.$dirty">Mobile-Number field is requird.</span>
             <span class="error-msg" v-if="!$v.mobile.valid">Mobile-Number format is invalid.</span>
         </div> 
@@ -34,7 +34,7 @@
 
 <script>
   import { required, minLength, helpers } from 'vuelidate/lib/validators'
-  const mobileCheck = helpers.regex("mobile", /^9(1[0-9]|3[1-9]|2[1-9])( |-)?[0-9]{3}( |-)?[0-9]{4}$/);
+  const mobileCheck = helpers.regex("mobile", /^09(1[0-9]|3[1-9]|2[1-9])( |-)?[0-9]{3}( |-)?[0-9]{4}$/);
   export default {
     data () {
       return {
@@ -67,16 +67,22 @@
         if(!this.$v.$invalid && this.$v.$anyDirty) {
           this.$store.dispatch('login', { mobile: formData.mobile, password: formData.password })
           .then((res) => {
-            if(res.data.status)
+            if(res.status === 200)
             {
               this.$toast.success('You logged in successfully !', 'Back-End')
               this.password = ''
-            }  else {
-              console.log(res.data);
-              let errors = res.data.errors
-              for (let key in errors) {
-                this.$toast.error(errors[key], 'Back-End')
+            }
+          })
+          .catch(err => {
+            
+            let res = err.response
+            if(res.status === 422)
+            {
+              for(let key in res.data) {
+                this.$toast.error(res.data[key][0], 'Back-End')
               }
+            } else if(res.status === 401) {
+                this.$toast.error(res.data.message, 'Back-End')
             }
           })
         }else {

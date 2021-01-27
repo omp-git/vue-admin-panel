@@ -19,10 +19,7 @@ export default new Vuex.Store({
       state.idToken = authData.token
       state.userId = authData.userId
       state.expiresIn = authData.expiresIn
-
-      // localStorage.setItem('_uid', authData.userId)
-      // localStorage.setItem('_token', authData.token)
-      // localStorage.setItem('_expires', authData.expiresIn)  
+      
       saveToLocal({
         token: authData.token,
         userId: authData.userId,
@@ -35,44 +32,33 @@ export default new Vuex.Store({
       state.idToken = null
       state.userId = null
       state.expiresIn = null
-      // localStorage.setItem('_uid', null)
-      // localStorage.setItem('_token', null)
-      // localStorage.setItem('_expires', null) 
-      saveToLocal({
-        token: null,
-        userId: null,
-        expiresIn: null,
-      })
+      deleteLocal()
       router.push('/signin').catch(()=>{})
     }
   },
   actions: {
-    login({commit, dispatch},authData) {
+    login({commit, dispatch}, authData) {
       return new Promise((resolve, reject) => {
-        globalAxios.post('auth/vue-login', {
-          mobile: authData.mobile,
+        globalAxios.post('auth/login', {
+          mobile: authData.mobile.toString(),
           password: authData.password
         }) 
         .then(response => {
           const data = response.data
-          if(data.status) {
-            console.log('login: ', data)
+          if(response.status === 200) {
             commit('authUser', {
               token: data.access_token,
               expiresIn: data.expires_in,
-              userId: data.u_id
+              userId: data.user.id
             })
             if(data.expires_in) {
               const period = data.expires_in - utcNow()
               dispatch('setLogoutTime', period)
             }
+            resolve(response)
           }
-          resolve(response);
         })
-          .catch((error) => {
-            console.log('err:', error)
-            reject(error);
-          })
+          .catch((error) => reject(error))
       })
     },
 
@@ -102,11 +88,22 @@ export default new Vuex.Store({
       dispatch('setLogoutTime', period)
     },
     logout({commit}) {
-      commit('clearAuthUser')
+      globalAxios.post('auth/logout', {
+        token: this.getters.token
+      }) 
+      .then(response => {
+        if(response.status === 200) {
+          commit('clearAuthUser')
+          console.log('user logged out!')
+        }
+      })
+      .catch((error) => {
+        console.log('err:', error)
+      })
     },
-    setLogoutTime({dispatch}, expirationTime) {
+    setLogoutTime({commit}, expirationTime) {
       setTimeout(() => {
-        dispatch('logout')
+        commit('clearAuthUser')
       }, expirationTime * 1000) 
     }
   },
@@ -143,7 +140,6 @@ function loadLocalData() {
     const raw = localStorage.getItem('vue_user')
     var bytes = aes.decrypt(raw.toString(), process.env.VUE_APP_KEY_AES);
     var obj = JSON.parse(bytes.toString(utf8))
-    console.log((obj))
   }
   catch {
     return false;
@@ -151,4 +147,8 @@ function loadLocalData() {
   if (('_exp' in obj) && ('_token' in obj) && ('_uid' in obj))
     return obj;
   return false;
+}
+function deleteLocal() { 
+  localStorage.removeItem('vue_user')
+  return true;
 }

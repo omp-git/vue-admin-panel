@@ -1,6 +1,10 @@
 import Axios from 'axios'
 const serverApi = Axios.create({
-    baseURL: 'https://imi24.com/api'
+    baseURL: 'http://localhost:8000/api'
 })
-// fireBaseApi.defaults.headers['something'] = 'SOMETHING'
+
+// serverApi.defaults.headers['Access-Control-Allow-Origin'] = '*'
+// serverApi.defaults.withCredentials = true
+// delete serverApi.defaults.headers.common["X-Requested-With"];
+
 export default serverApi
