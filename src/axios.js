@@ -1,6 +1,6 @@
 import Axios from 'axios'
 const serverApi = Axios.create({
-    baseURL: 'http://localhost:8000/api'
+    baseURL: 'https://lumen-api-1.herokuapp.com/api'
 })
 
 // serverApi.defaults.headers['Access-Control-Allow-Origin'] = '*'
