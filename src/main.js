@@ -5,6 +5,8 @@ import 'izitoast/dist/css/iziToast.min.css';
 import Vuelidate from 'vuelidate'
 import router from './router'
 import store from './store'
+var Paginate = require('vuejs-paginate')
+Vue.component('paginate', Paginate)
 
 Vue.use(VueIziToast)
 Vue.use(Vuelidate)
