@@ -78,7 +78,10 @@
           }
         })
         .catch((error) => {
-          this.$store.dispatch('logout')
+          if(error.response == 401)
+          {
+            this.$store.commit('clearUser')
+          }
           console.log(error.response)
         })
       }
@@ -103,8 +106,10 @@
           }
         })
         .catch((error) => {
-          this.$store.dispatch('logout')
-          console.log(error.response)
+          if(error.response == 401)
+          {
+            this.$store.commit('clearUser')
+          }
         }) 
       }
     }
