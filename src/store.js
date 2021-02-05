@@ -131,13 +131,15 @@ function utcNow() {
 function saveToLocal(data) {
   let info = { _exp: data.expiresIn, _token: data.token, _uid: data.userId}
   var cipher = aes.encrypt(JSON.stringify(info), process.env.VUE_APP_KEY_AES)
-  localStorage.setItem('vue_user', cipher)
+  // localStorage.setItem('vue_user', cipher)
+  Vue.cookie.set('simple_cookie', cipher);
   return true;
 }
 
 function loadLocalData() {
   try {
-    const raw = localStorage.getItem('vue_user')
+    // const raw = localStorage.getItem('vue_user')
+    const raw = Vue.cookie.get('simple_cookie')
     var bytes = aes.decrypt(raw.toString(), process.env.VUE_APP_KEY_AES);
     var obj = JSON.parse(bytes.toString(utf8))
   }
@@ -149,6 +151,7 @@ function loadLocalData() {
   return false;
 }
 function deleteLocal() { 
-  localStorage.removeItem('vue_user')
+  // localStorage.removeItem('vue_user')
+  Vue.cookie.delete('simple_cookie')
   return true;
 }
